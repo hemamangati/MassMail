@@ -14,6 +14,9 @@ import sqlite3
 from google.auth.transport.requests import Request
 from datetime import datetime, timezone
 
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+CREDENTIALS_FILE = "credentials.json"
+
 load_dotenv()
 # Connect to your SQLite database (mass_mail.db)
 conn = sqlite3.connect('mass_mail.db', check_same_thread=False)
