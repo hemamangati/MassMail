@@ -57,7 +57,9 @@ def create_gmail_service():
             creds.refresh(Request())  # Refresh the token if expired
         else:
             flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            flow.redirect_uri = st.experimental_get_query_params().get("redirect_uris", [""])[0]
+            flow.redirect_uri = "https://massmail-infosyshema.streamlit.app"  # Ensure this matches the production URL
+
+            #flow.redirect_uri = st.experimental_get_query_params().get("redirect_uris", [""])[0]
             auth_url, _ = flow.authorization_url(prompt="consent")
             
             st.write("Please authenticate with Gmail:")
