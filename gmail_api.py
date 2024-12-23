@@ -66,9 +66,11 @@ def create_gmail_service():
                 flow.fetch_token(code=code)
                 creds = flow.credentials
 
-        # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
+                # Save the credentials for the next run
+                with open('token.pickle', 'wb') as token:
+                    pickle.dump(creds, token)
+
+                st.rerun()  # Refresh the app
 
     service = build('gmail', 'v1', credentials=creds)
     user_profile = service.users().getProfile(userId='me').execute()
@@ -76,7 +78,7 @@ def create_gmail_service():
     print(f"Authenticated sender email: {sender_email}")
 
     return service, sender_email
-
+    
 def get_email_status(service, message_id):
     try:
         message = service.users().messages().get(userId="me", id=message_id, format="metadata").execute()
