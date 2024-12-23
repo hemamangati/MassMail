@@ -1,6 +1,8 @@
 import os
 import time
 from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email.mime.text import MIMEText
@@ -10,8 +12,11 @@ import streamlit as st
 import pickle
 import base64
 import sqlite3
-from google.auth.transport.requests import Request
 from datetime import datetime, timezone
+
+
+CREDENTIALS_FILE = "credentials.json"
+
 
 load_dotenv()
 # Connect to your SQLite database (mass_mail.db)
@@ -51,8 +56,17 @@ def create_gmail_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())  # Refresh the token if expired
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+            flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+            flow.redirect_uri = st.experimental_get_query_params().get("redirect_uri", [""])[0]
+            auth_url, _ = flow.authorization_url(prompt="consent")
+            
+            st.write("Please authenticate with Gmail:")
+            st.markdown(f"[Click here to authenticate]({auth_url})")
+
+            code = st.text_input("Paste the authorization code here:")
+            if code:
+                flow.fetch_token(code=code)
+                creds = flow.credentials
 
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
