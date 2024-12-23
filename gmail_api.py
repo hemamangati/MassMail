@@ -54,7 +54,7 @@ def create_gmail_service():
             creds.refresh(Request())
         else:
             flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            flow.redirect_uri = "massmail-infosyshema.streamlit.app"  # Replace with your Streamlit app URL
+            flow.redirect_uri = "https://massmail-infosyshema.streamlit.app"
             
             auth_url, _ = flow.authorization_url(prompt="consent")
             
