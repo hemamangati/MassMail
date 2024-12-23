@@ -47,16 +47,15 @@ def create_gmail_service():
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
-    else:
-        print("Token file not found.")
 
-    # If no credentials are available or they are expired, request the user to log in again
+    # If no credentials are available or expired, request new ones
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())  # Refresh the token if expired
+            creds.refresh(Request())
         else:
             flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            flow.redirect_uri = st.experimental_get_query_params().get("redirect_uri", [""])[0]
+            flow.redirect_uri = "https://massmail-infosyshema.streamlit.app/"  # Replace with your Streamlit app URL
+            
             auth_url, _ = flow.authorization_url(prompt="consent")
             
             st.write("Please authenticate with Gmail:")
