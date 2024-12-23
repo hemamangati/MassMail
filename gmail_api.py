@@ -1,7 +1,6 @@
 import os
 import time
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email.mime.text import MIMEText
@@ -13,9 +12,6 @@ import base64
 import sqlite3
 from google.auth.transport.requests import Request
 from datetime import datetime, timezone
-
-SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
-CREDENTIALS_FILE = "credentials.json"
 
 load_dotenv()
 # Connect to your SQLite database (mass_mail.db)
@@ -47,30 +43,20 @@ def create_gmail_service():
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
+    else:
+        print("Token file not found.")
 
-    # If no credentials are available or expired, request new ones
+    # If no credentials are available or they are expired, request the user to log in again
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            creds.refresh(Request())  # Refresh the token if expired
         else:
-            flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            flow.redirect_uri = "https://massmail-infosyshema.streamlit.app"
-            
-            auth_url, _ = flow.authorization_url(prompt="consent")
-            
-            st.write("Please authenticate with Gmail:")
-            st.markdown(f"[Click here to authenticate]({auth_url})")
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
 
-            code = st.text_input("Paste the authorization code here:")
-            if code:
-                flow.fetch_token(code=code)
-                creds = flow.credentials
-
-                # Save the credentials for the next run
-                with open('token.pickle', 'wb') as token:
-                    pickle.dump(creds, token)
-
-                st.rerun()  # Refresh the app
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
     user_profile = service.users().getProfile(userId='me').execute()
@@ -78,7 +64,7 @@ def create_gmail_service():
     print(f"Authenticated sender email: {sender_email}")
 
     return service, sender_email
-    
+
 def get_email_status(service, message_id):
     try:
         message = service.users().messages().get(userId="me", id=message_id, format="metadata").execute()
